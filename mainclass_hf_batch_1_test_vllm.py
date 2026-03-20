@@ -19,7 +19,7 @@ class multi_reflection_rag_hf:
         # read hf model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        self.reflector_model_id = "/volume1/verl/checkpoints/search_r1_like_async_rl_grpo_with_reflection_test/qwen3-4b-it_rm-searchR1-like-sgl_multiturn-with_reflection-2025-11-25-16-16/global_step_462/merged_hf_model"
+        self.reflector_model_id = "/volume1/verl/checkpoints/search_r1_like_async_rl_grpo_with_reflection_test/qwen3-4b-it_rm-searchR1-like-sgl_multiturn-with_reflection-2026-03-14-18-37/global_step_462/merged_hf_model"
         
         self.reflector_tokenizer = AutoTokenizer.from_pretrained(self.reflector_model_id)
         # self.reflector_model = AutoModelForCausalLM.from_pretrained(
@@ -144,9 +144,19 @@ class multi_reflection_rag_hf:
         """
         
         generate_subquestion_user_prompt = f"Given a question, analyze it, and think, what information do you need to answer this question, and generate related sub-questions for rag search. Do not generate sub-questions which uses the answer given by other sub-questions. \n\n Qustion: {main_question}"
+                
+        is_valid_json = False
         
-        raw_response = self.call_api_planner(user_message=generate_subquestion_user_prompt, system_message=generate_subquestion_system_prompt)
-        sub_questions_json = json.loads(raw_response.choices[0].message.content)
+        while not is_valid_json:
+            try:
+                raw_response = self.call_api_planner(user_message=generate_subquestion_user_prompt, system_message=generate_subquestion_system_prompt)
+                sub_questions_json = json.loads(raw_response.choices[0].message.content)
+                is_valid_json = True
+            except json.JSONDecodeError as e:
+                print(f"JSON decoding error: {e}. Retrying...")
+                print('-------\nHere is the response failed to read as json (generated_sub_questions)\n-------')
+                print(raw_response.choices[0].message.content)
+                continue
         
         return raw_response, sub_questions_json
     
@@ -352,11 +362,21 @@ Retrieved information from searching:\n \
         
         print(rewrite_query_input_message)
         
-        raw_response = self.call_api_planner(system_message=rewrite_query_system_message, user_message=rewrite_query_input_message)
-        response = raw_response.choices[0].message.content
+        is_valid_json = False
         
-        response_json = json.loads(response)
-        
+        while not is_valid_json:
+            try:
+                raw_response = self.call_api_planner(system_message=rewrite_query_system_message, user_message=rewrite_query_input_message)
+                response = raw_response.choices[0].message.content
+                response_json = json.loads(response)
+                is_valid_json = True
+            except json.JSONDecodeError as e:
+                print(f"JSON decoding error: {e}. Retrying...")
+                print('-------\nHere is the response failed to read as json (rewrite query)\n-------')
+                print(response)
+                continue
+            
+            
         return raw_response, response_json
     
     def generate_new_sub_questions(self, main_question, supporting_information):
@@ -383,9 +403,19 @@ Retrieved information from searching:\n \
         
         generate_subquestion_user_prompt = f"""Given a question and supporting information, analyze it, and think, what information do you need to answer this question, and generate related sub-questions for rag search. Do not generate sub-questions which uses the answer given by other sub-questions. Generate at least 3 sub-questions. Do not generate any sub-questions which existed in the supporting information.\n\nQuestion:\n{main_question}\n\nSupporting information:\n{supporting_information}"""
         
-        raw_response = self.call_api_planner(user_message=generate_subquestion_user_prompt, system_message=generate_subquestion_system_prompt)
+        is_valid_json = False
         
-        new_sub_questions_json = json.loads(raw_response.choices[0].message.content)
+        while not is_valid_json:
+            try:
+                raw_response = self.call_api_planner(user_message=generate_subquestion_user_prompt, system_message=generate_subquestion_system_prompt)
+                new_sub_questions_json = json.loads(raw_response.choices[0].message.content)
+                is_valid_json = True
+            except json.JSONDecodeError as e:
+                print(f"JSON decoding error: {e}. Retrying...")
+                print('-------\nHere is the response failed to read as json (generate new sub questions)\n-------')
+                print(raw_response.choices[0].message.content)
+                continue
+    
         
         return raw_response, new_sub_questions_json
     
@@ -398,7 +428,7 @@ Retrieved information from searching:\n \
             "final_answer": "Final Answer"
         }
         """
-        user_input = f"""With a given question and supporting information, think step by step, and generate both your reasoning and the final answer in valid JSON. Generate your reasonings in the key "thinking" and your final answer in the key "final_answer". Do not add detailed illustration to the answer, add all your reasonings to the "thinking" part of your output. For example, if the final answer is "Beijing", just output "Beijing" as the final answer, i.e., "final_answer": "Beijing".
+        user_input = f"""With a given question and supporting information, think step by step, and generate both your reasoning and the final answer in valid JSON. Generate your reasonings in the key "thinking" and your final answer in the key "final_answer". Do not add detailed illustration or explanation to the answer, generate all your reasonings and explanation to the "thinking" part of your output. For example, if the final answer is "Beijing", just output "Beijing" as the final answer, i.e., "final_answer": "Beijing".
         
         Question:
         {question}
@@ -407,14 +437,19 @@ Retrieved information from searching:\n \
         {supporting_information}
         """
         
-        raw_response = self.call_api_planner(system_message=system_prompt, user_message=user_input)
+        is_valid_json = False
         
-        response = raw_response.choices[0].message.content
-        
-        print('-------\nHere is the response prepared to read as json\n-------')
-        print(response)
-        
-        response_json = json.loads(response)
+        while not is_valid_json:
+            try:
+                raw_response = self.call_api_planner(system_message=system_prompt, user_message=user_input)
+                response = raw_response.choices[0].message.content
+                response_json = json.loads(response)
+                is_valid_json = True
+            except json.JSONDecodeError as e:
+                print(f"JSON decoding error: {e}. Retrying...")
+                print('-------\nHere is the response failed to read as json (final answer analysis)\n-------')
+                print(response)
+                continue
         
         final_answer = response_json['final_answer']
         
@@ -535,28 +570,11 @@ if __name__ == "__main__":
     import datasets
     import datetime
     
-    huggingface_hub.login(token=hf_api)
-    
-    # openai client
-    openai_gpt_client = OpenAI(api_key=openai_api)
-    # models: gpt-5
+    huggingface_hub.login(hf_token)
 
     # deepseek client
-    deepseek_client = OpenAI(api_key=ds_api, base_url="https://api.deepseek.com") 
+    deepseek_client = OpenAI(api_key=ds_token, base_url="https://api.deepseek.com") 
     # models: deepseek-chat, deepseek-reasoner
-
-    # gemini client
-    gemini_client = OpenAI(api_key=gemini_api, base_url="https://generativelanguage.googleapis.com/v1beta/openai/") 
-    # models: gemini-2.5-flash
-
-    # qwen client
-    qwen_client = OpenAI(api_key=qwen_api, base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
-    # model: qwen-plus
-
-    # kimi client
-    kimi_client = OpenAI(api_key=kimi_api, base_url="https://api.moonshot.cn/v1")
-    # models: kimi-k2-0905-preview
-    
     
     # ----------------------------------------------------------------------
     
@@ -564,7 +582,7 @@ if __name__ == "__main__":
     
     output_path = f"/volume1/multi-agent-rag-reflection/dataset_test_output/"
     os.makedirs(output_path, exist_ok=True)
-    json_output_path = os.path.join(output_path, f'hotpotqa-{date_now.strftime("%Y-%m-%d-%H-%M")}-deepseek-chat-test.jsonl')
+    json_output_path = os.path.join(output_path, f'hotpotqa-deepseek-chat-test-vllm-2026-03-19-00-25.jsonl')
     
     open(json_output_path, 'a', encoding='utf-8').close()
     
@@ -578,7 +596,7 @@ if __name__ == "__main__":
     test_dataset = dataset['dev']
     data_size = len(test_dataset)
     
-    for idx in range(927, 3647):
+    for idx in range(1882, data_size):
         question_id = test_dataset[idx]["id"]
         input_question = test_dataset[idx]["question"]
         golden_answers = test_dataset[idx]["golden_answers"]
