@@ -625,6 +625,8 @@ if __name__ == "__main__":
     test_dataset = dataset['dev']
     data_size = len(test_dataset)
     
+    next_first_id = 0
+    
     if file_exist:
         next_first_id = last_id_int +1
     else:
