@@ -630,7 +630,7 @@ if __name__ == "__main__":
     else:
         next_first_id = 0
     
-    for idx in range(last_id_int, data_size):
+    for idx in range(next_first_id, data_size):
         question_id = test_dataset[idx]["id"]
         input_question = test_dataset[idx]["question"]
         golden_answers = test_dataset[idx]["golden_answers"]
