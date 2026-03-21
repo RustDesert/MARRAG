@@ -631,25 +631,28 @@ if __name__ == "__main__":
         next_first_id = last_id_int +1
     else:
         next_first_id = 0
-    
-    for idx in range(next_first_id, data_size):
-        question_id = test_dataset[idx]["id"]
-        input_question = test_dataset[idx]["question"]
-        golden_answers = test_dataset[idx]["golden_answers"]
         
-        outputed_json = runclass.execute(input_question=input_question, question_id=question_id)
-        
-        final_output_json = {}
-        final_output_json['id'] = question_id
-        final_output_json['golden_answers'] = golden_answers
-        final_output_json['output_answer'] = outputed_json['final_answer']
-        final_output_json['output'] = outputed_json
-        
-        final_output_json = json.loads(json.dumps(final_output_json))
-        
-        with open(json_output_path, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(final_output_json, ensure_ascii=False) + '\n')
-        
-        print(f"Finished question {question_id}")
-        
-    print("--------------\nAll questions finished!\n--------------")
+    if next_first_id > data_size:
+        print(f"All questions in the dataset have been processed. The last processed question ID is {last_id_str}.")
+    else:
+        for idx in range(next_first_id, data_size):
+            question_id = test_dataset[idx]["id"]
+            input_question = test_dataset[idx]["question"]
+            golden_answers = test_dataset[idx]["golden_answers"]
+            
+            outputed_json = runclass.execute(input_question=input_question, question_id=question_id)
+            
+            final_output_json = {}
+            final_output_json['id'] = question_id
+            final_output_json['golden_answers'] = golden_answers
+            final_output_json['output_answer'] = outputed_json['final_answer']
+            final_output_json['output'] = outputed_json
+            
+            final_output_json = json.loads(json.dumps(final_output_json))
+            
+            with open(json_output_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(final_output_json, ensure_ascii=False) + '\n')
+            
+            print(f"Finished question {question_id}")
+            
+        print("--------------\nAll questions finished!\n--------------")
