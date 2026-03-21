@@ -564,7 +564,25 @@ Retrieved information from searching:\n \
         final_output_json = json.loads(json.dumps(json_format))
         
         return final_output_json
+
+
+def get_last_id(filepath):
+    last_line = None
+    with open(filepath, 'r', encoding='utf-8') as f:
+        try:
+            last_line = json.loads(f.readlines()[-1].strip())
+        except IndexError:
+            print("The file is empty or contains only blank lines.")
+            last_line = None
         
+    if last_line is None:
+        raise ValueError("The file is empty or contains only blank lines.")
+    
+    if "id" not in last_line:
+        raise ValueError("The last JSON object does not contain an 'id' field.")
+    
+    return str(last_line["id"])
+
 
 if __name__ == "__main__":
     import datasets
@@ -576,6 +594,7 @@ if __name__ == "__main__":
     deepseek_client = OpenAI(api_key=ds_token, base_url="https://api.deepseek.com") 
     # models: deepseek-chat, deepseek-reasoner
     
+    
     # ----------------------------------------------------------------------
     
     date_now = datetime.datetime.now()
@@ -584,8 +603,18 @@ if __name__ == "__main__":
     os.makedirs(output_path, exist_ok=True)
     json_output_path = os.path.join(output_path, f'hotpotqa-deepseek-chat-test-vllm-2026-03-19-00-25.jsonl')
     
-    open(json_output_path, 'a', encoding='utf-8').close()
     
+    file_exist = os.path.isfile(json_output_path)
+    
+    if file_exist:
+        print(f"{json_output_path} already exists. New results will be appended to the existing file.")
+        last_id_str = get_last_id(json_output_path)
+        last_id_int = int(last_id_str.split("_")[1])
+        print(f"The last question ID in the existing file is: {last_id_str}, in int is: {last_id_int}.")
+    else:
+        print(f"{json_output_path} does not exist. A new file will be created.")
+        open(json_output_path, 'a', encoding='utf-8').close()
+
     runclass = multi_reflection_rag_hf(
         planner_client=deepseek_client,
         planner_model="deepseek-chat",
@@ -596,7 +625,12 @@ if __name__ == "__main__":
     test_dataset = dataset['dev']
     data_size = len(test_dataset)
     
-    for idx in range(1882, data_size):
+    if file_exist:
+        next_first_id = last_id_int +1
+    else:
+        next_first_id = 0
+    
+    for idx in range(last_id_int, data_size):
         question_id = test_dataset[idx]["id"]
         input_question = test_dataset[idx]["question"]
         golden_answers = test_dataset[idx]["golden_answers"]
