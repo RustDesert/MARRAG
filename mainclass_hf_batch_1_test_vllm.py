@@ -632,7 +632,7 @@ if __name__ == "__main__":
     else:
         next_first_id = 0
         
-    if next_first_id > data_size:
+    if next_first_id >= data_size:
         print(f"All questions in the dataset have been processed. The last processed question ID is {last_id_str}.")
     else:
         for idx in range(next_first_id, data_size):
