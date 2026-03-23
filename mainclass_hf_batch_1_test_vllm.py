@@ -599,6 +599,10 @@ if __name__ == "__main__":
     
     date_now = datetime.datetime.now()
     
+    dataset = datasets.load_dataset("RUC-NLPIR/FlashRAG_datasets", "hotpotqa")
+    test_dataset = dataset['dev']
+    data_size = len(test_dataset)
+    
     output_path = f"/volume1/multi-agent-rag-reflection/dataset_test_output/"
     os.makedirs(output_path, exist_ok=True)
     json_output_path = os.path.join(output_path, f'hotpotqa-deepseek-chat-test-vllm-2026-03-19-00-25.jsonl')
@@ -614,27 +618,24 @@ if __name__ == "__main__":
     else:
         print(f"{json_output_path} does not exist. A new file will be created.")
         open(json_output_path, 'a', encoding='utf-8').close()
-
-    runclass = multi_reflection_rag_hf(
-        planner_client=deepseek_client,
-        planner_model="deepseek-chat",
-    )
     
-        
-    dataset = datasets.load_dataset("RUC-NLPIR/FlashRAG_datasets", "hotpotqa")
-    test_dataset = dataset['dev']
-    data_size = len(test_dataset)
     
     next_first_id = 0
     
     if file_exist:
         next_first_id = last_id_int +1
+        print(f"The next question ID to process is: {next_first_id}.")
     else:
         next_first_id = 0
         
     if next_first_id >= data_size:
         print(f"All questions in the dataset have been processed. The last processed question ID is {last_id_str}.")
     else:
+        runclass = multi_reflection_rag_hf(
+            planner_client=deepseek_client,
+            planner_model="deepseek-chat",
+        )
+        
         for idx in range(next_first_id, data_size):
             question_id = test_dataset[idx]["id"]
             input_question = test_dataset[idx]["question"]

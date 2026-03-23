@@ -30,22 +30,25 @@ flowchart TB
 ---
 config:
   themeVariables:
-    fontSize: '40px'
+    fontSize: 40px
+  theme: redux
 ---
 flowchart LR
-    A["User</br>Input"] --> B["Planner"]
-    B --> C["sub-question 1"]
-    B --> D["sub-question 2"]
-    B --> E["sub-question 3"]
-    C --> G["Planner"]
+    A["User<br>Input"] --> B["Planner 1"]
+    B --> C["sub-question 1"] & D["sub-question 2"] & E["sub-question 3"]
+    C --> G["Reflector"]
     D --> G
     E --> G
-    G -- Reflectted FALSE --> H["Planner (generate new sub-questions)"]
+    G -- Reflectted FALSE --> H["Planner 2 (generate new sub-questions)"]
     G -- Reflectted TRUE --> I["True Reflection List"]
-    H -- new sub-questions --> J["Reflector"]
+    H -- "new sub-questions" --> J["Reflector"]
     J -- Reflectted TRUE --> I
-    I -- "Contextual Support" --> H
+    I -- Contextual Support --> H
     J -- Reflectted FALSE --> H
-    I --> K("Planner")
+    I --> K("Planner 3")
     K --> L("Final Answer")
+
+    style B fill:#FFE0B2
+    style H fill:#C8E6C9
+    style K fill:#BBDEFB
 ```
