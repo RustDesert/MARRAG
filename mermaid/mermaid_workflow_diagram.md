@@ -1,3 +1,4 @@
+# Mermaid Workflow Diagram old
 ```mermaid
 ---
 config:
@@ -26,12 +27,17 @@ flowchart TB
     O --> P("Final Answer")
 ```
 
+# Mermaid Workflow Diagram
 ```mermaid
 ---
 config:
+  theme: base
   themeVariables:
     fontSize: 40px
-  theme: redux
+    primaryColor: '#fff'
+    secondaryColor: '#e6e6e6'
+    primaryBorderColor: '#28253D'
+    secondaryBorderColor: '#000000'
 ---
 flowchart LR
     A["User<br>Input"] --> B["Planner 1"]
@@ -45,10 +51,28 @@ flowchart LR
     J -- Reflectted TRUE --> I
     I -- Contextual Support --> H
     J -- Reflectted FALSE --> H
-    I --> K("Planner 3")
-    K --> L("Final Answer")
+    I --> K["Planner 3"]
+    K --> L["Final</br>Answer"]
 
     style B fill:#FFE0B2
     style H fill:#C8E6C9
     style K fill:#BBDEFB
+```
+
+# Planner1 (sub-question generation) diagram
+```mermaid
+```
+
+# Planner2 (sub-question re-generation) diagram
+```mermaid
+```
+
+
+# Planner3 (Final answer analyser) diagram
+```mermaid
+```
+
+
+# Reflector Generation workflow diagram
+```mermaid
 ```
