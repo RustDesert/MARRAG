@@ -30,7 +30,6 @@ flowchart TB
 # Mermaid Workflow Diagram
 ```mermaid
 ---
-title: MARRAG Workflow
 config:
   theme: base
   themeVariables:
@@ -46,17 +45,19 @@ flowchart LR
     C --> G["Reflector"]
     D --> G
     E --> G
-    G -- Reflectted FALSE --> H["Planner 2 (generate new sub-questions)"]
+    G -- Reflectted FALSE --> H["Planner 2"]
     G -- Reflectted TRUE --> I["True Reflection List"]
     H -- "new sub-questions" --> J["Reflector"]
     J -- Reflectted TRUE --> I
     I -- Contextual Support --> H
     J -- Reflectted FALSE --> H
     I --> K["Planner 3"]
-    K --> L["Final</br>Answer"]
+    K --> L["Final<br>Answer"]
 
     style B fill:#FFE0B2
+    style G fill:#E1BEE7
     style H fill:#C8E6C9
+    style J fill:#E1BEE7
     style K fill:#BBDEFB
 ```
 
@@ -147,7 +148,7 @@ flowchart LR
     Ref --> C["Reasoning"]
     C --> D["Predicted Answer"]
     D --> E["self-reflection reasoning"]
-    E --> F["self-reflection verification"]
+    E --> F["self-reflection result"]
     F --> G["True"] & H["False"]
 
     style Ref fill:#E1BEE7
